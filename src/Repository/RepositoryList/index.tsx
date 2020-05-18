@@ -5,7 +5,7 @@ import RepositoryItem from "../RepositoryItem";
 import "../style.css";
 
 interface Repository {
-  id: number;
+  id: string;
   name: string;
   url: string;
   descriptionHTML: string;

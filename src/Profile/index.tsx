@@ -39,7 +39,7 @@ const GET_REPOSITORIES_OF_CURRENT_USER = gql`
 `;
 
 interface Repository {
-  id: number;
+  id: string;
   name: string;
   url: string;
   descriptionHTML: string;
