@@ -1,0 +1,11 @@
+query getRepositoriesOfCurrentUser {
+  viewer {
+    repositories(first: 5, orderBy: { direction: DESC, field: STARGAZERS }) {
+      edges {
+        node {
+          ...repository
+        }
+      }
+    }
+  }
+}

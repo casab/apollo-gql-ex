@@ -1,5 +1,4 @@
 import React from "react";
-import { Mutation } from "react-apollo";
 
 import Link from "../../Link";
 import Button from "../../Button";
@@ -7,31 +6,117 @@ import Button from "../../Button";
 import "../style.css";
 
 import {
-  STAR_REPOSITORY,
-  UNSTAR_REPOSITORY,
-  WATCH_REPOSITORY,
-} from "../mutations";
+  Repository,
+  UnstarRepositoryMutation,
+  WatchRepositoryMutation,
+  StarRepositoryMutation,
+  WatchRepositoryComponent,
+  StarRepositoryComponent,
+  UnstarRepositoryComponent,
+  SubscriptionState,
+} from "../../generated/graphql";
+
+import { REPOSITORY_FRAGMENT } from "..";
+import { MutationUpdaterFn } from "apollo-client";
+import { DataProxy } from "apollo-cache";
 
 const VIEWER_SUBSCRIPTIONS = {
   SUBSCRIBED: "SUBSCRIBED",
   UNSUBSCRIBED: "UNSUBSCRIBED",
 };
 
-const isWatch = (viewerSubscription: string): boolean =>
+const isWatch = (viewerSubscription: SubscriptionState): boolean =>
   viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED;
 
-interface Repository {
-  id: string;
-  name: string;
-  url: string;
-  descriptionHTML: string;
-  primaryLanguage: { name: string };
-  owner: { login: string; url: string };
-  stargazers: { totalCount: number };
-  viewerHasStarred: boolean;
-  watchers: { totalCount: number };
-  viewerSubscription: string;
-}
+const updateWatch: MutationUpdaterFn<WatchRepositoryMutation> = (
+  client,
+  {
+    data: {
+      updateSubscription: {
+        subscribable: { id, viewerSubscription },
+      },
+    },
+  }
+) => {
+  const repository = client.readFragment({
+    id: `Repository:${id}`,
+    fragment: REPOSITORY_FRAGMENT,
+  }) as Repository;
+
+  let { totalCount } = repository.watchers;
+  totalCount =
+    viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED
+      ? totalCount + 1
+      : totalCount - 1;
+
+  client.writeFragment({
+    id: `Repository:${id}`,
+    fragment: REPOSITORY_FRAGMENT,
+    data: {
+      ...repository,
+      watchers: {
+        ...repository.watchers,
+        totalCount,
+      },
+    },
+  });
+};
+
+const updateAddStar: MutationUpdaterFn<StarRepositoryMutation> = (
+  client,
+  {
+    data: {
+      addStar: {
+        starrable: { id, viewerHasStarred },
+      },
+    },
+  }
+) => {
+  client.writeFragment({
+    id: `Repository:${id}`,
+    fragment: REPOSITORY_FRAGMENT,
+    data: getUpdatedStarData(client, id, viewerHasStarred),
+  });
+};
+
+const updateRemoveStar: MutationUpdaterFn<UnstarRepositoryMutation> = (
+  client,
+  {
+    data: {
+      removeStar: {
+        starrable: { id, viewerHasStarred },
+      },
+    },
+  }
+) => {
+  client.writeFragment({
+    id: `Repository:${id}`,
+    fragment: REPOSITORY_FRAGMENT,
+    data: getUpdatedStarData(client, id, viewerHasStarred),
+  });
+};
+
+const getUpdatedStarData = (
+  client: DataProxy,
+  id: string,
+  viewerHasStarred: boolean
+) => {
+  const repository = client.readFragment({
+    id: `Repository:${id}`,
+    fragment: REPOSITORY_FRAGMENT,
+  }) as Repository;
+
+  let { totalCount } = repository.stargazers;
+  totalCount = viewerHasStarred ? totalCount + 1 : totalCount - 1;
+
+  return {
+    ...repository,
+    stargazers: {
+      ...repository.stargazers,
+      totalCount,
+    },
+  };
+};
 
 const RepositoryItem: React.FC<Repository> = ({
   id,
@@ -52,14 +137,12 @@ const RepositoryItem: React.FC<Repository> = ({
       </h2>
 
       <div className="RepositoryItem-title-action">
-        <Mutation<Repository, { id: string; viewerSubscription: string }>
-          mutation={WATCH_REPOSITORY}
+        <WatchRepositoryComponent
           variables={{
             id,
-            viewerSubscription: isWatch(viewerSubscription)
-              ? VIEWER_SUBSCRIPTIONS.UNSUBSCRIBED
-              : VIEWER_SUBSCRIPTIONS.SUBSCRIBED,
+            viewerSubscription,
           }}
+          update={updateWatch}
         >
           {(updateSubscription, { data, loading, error }) => (
             <Button
@@ -71,12 +154,9 @@ const RepositoryItem: React.FC<Repository> = ({
               {isWatch(viewerSubscription) ? "Unwatch" : "Watch"}
             </Button>
           )}
-        </Mutation>
+        </WatchRepositoryComponent>
         {!viewerHasStarred ? (
-          <Mutation<Repository, { id: string }>
-            mutation={STAR_REPOSITORY}
-            variables={{ id }}
-          >
+          <StarRepositoryComponent variables={{ id }} update={updateAddStar}>
             {(addStar, { data, loading, error }) => (
               <Button
                 className={"RepositoryItem-title-action"}
@@ -85,11 +165,11 @@ const RepositoryItem: React.FC<Repository> = ({
                 {stargazers.totalCount} Stars
               </Button>
             )}
-          </Mutation>
+          </StarRepositoryComponent>
         ) : (
-          <Mutation<Repository, { id: string }>
-            mutation={UNSTAR_REPOSITORY}
+          <UnstarRepositoryComponent
             variables={{ id }}
+            update={updateRemoveStar}
           >
             {(removeStar, { data, loading, error }) => (
               <Button
@@ -99,10 +179,8 @@ const RepositoryItem: React.FC<Repository> = ({
                 {stargazers.totalCount} Unstar
               </Button>
             )}
-          </Mutation>
+          </UnstarRepositoryComponent>
         )}
-
-        {/* Here comes your updateSubscription mutation */}
       </div>
     </div>
 

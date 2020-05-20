@@ -1,21 +1,9 @@
 import React from "react";
 
 import RepositoryItem from "../RepositoryItem";
+import { Repository } from "../../generated/graphql";
 
 import "../style.css";
-
-interface Repository {
-  id: string;
-  name: string;
-  url: string;
-  descriptionHTML: string;
-  primaryLanguage: { name: string };
-  owner: { login: string; url: string };
-  stargazers: { totalCount: number };
-  viewerHasStarred: boolean;
-  watchers: { totalCount: number };
-  viewerSubscription: string;
-}
 
 interface RepositoryListProps {
   repositories: {

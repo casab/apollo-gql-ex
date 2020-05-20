@@ -1,0 +1,28 @@
+mutation starRepository($id: ID!) {
+  addStar(input: { starrableId: $id }) {
+    starrable {
+      id
+      viewerHasStarred
+    }
+  }
+}
+
+mutation unstarRepository($id: ID!) {
+  removeStar(input: { starrableId: $id }) {
+    starrable {
+      id
+      viewerHasStarred
+    }
+  }
+}
+
+mutation watchRepository($id: ID!, $viewerSubscription: SubscriptionState!) {
+  updateSubscription(
+    input: { state: $viewerSubscription, subscribableId: $id }
+  ) {
+    subscribable {
+      id
+      viewerSubscription
+    }
+  }
+}
