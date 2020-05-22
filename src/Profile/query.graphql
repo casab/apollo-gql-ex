@@ -1,10 +1,18 @@
-query getRepositoriesOfCurrentUser {
+query getRepositoriesOfCurrentUser($cursor: String) {
   viewer {
-    repositories(first: 5, orderBy: { direction: DESC, field: STARGAZERS }) {
+    repositories(
+      first: 5
+      orderBy: { direction: DESC, field: STARGAZERS }
+      after: $cursor
+    ) {
       edges {
         node {
           ...repository
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
       }
     }
   }

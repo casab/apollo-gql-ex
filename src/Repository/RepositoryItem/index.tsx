@@ -134,7 +134,9 @@ const RepositoryItem: React.FC<Repository> = ({
         <WatchRepositoryComponent
           variables={{
             id,
-            viewerSubscription: (isWatch(viewerSubscription)
+            viewerSubscription: (isWatch(
+              viewerSubscription as SubscriptionState
+            )
               ? "UNSUBSCRIBED"
               : "SUBSCRIBED") as SubscriptionState,
           }}
@@ -144,7 +146,9 @@ const RepositoryItem: React.FC<Repository> = ({
               subscribable: {
                 __typename: "Repository",
                 id,
-                viewerSubscription: (isWatch(viewerSubscription)
+                viewerSubscription: (isWatch(
+                  viewerSubscription as SubscriptionState
+                )
                   ? "UNSUBSCRIBED"
                   : "SUBSCRIBED") as SubscriptionState,
               },
@@ -159,7 +163,9 @@ const RepositoryItem: React.FC<Repository> = ({
               onClick={updateSubscription as any}
             >
               {watchers.totalCount}{" "}
-              {isWatch(viewerSubscription) ? "Unwatch" : "Watch"}
+              {isWatch(viewerSubscription as SubscriptionState)
+                ? "Unwatch"
+                : "Watch"}
             </Button>
           )}
         </WatchRepositoryComponent>

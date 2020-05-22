@@ -1,39 +1,34 @@
 import React from "react";
-import { Query } from "react-apollo";
 
 import RepositoryList from "../Repository";
 
 import {
-  Repository,
-  GetRepositoriesOfCurrentUserDocument,
+  GetRepositoriesOfCurrentUserComponent,
+  RepositoryConnection,
 } from "../generated/graphql";
 
 import Loading from "../Loading";
 import ErrorMessage from "../Error";
 
-interface Viewer {
-  repositories: {
-    edges: Array<{ node: Repository }>;
-  };
-}
-
-interface Data {
-  viewer: Viewer;
-}
-
 const Profile = () => (
-  <Query<Data, {}> query={GetRepositoriesOfCurrentUserDocument}>
-    {({ loading, error, data }) => {
+  <GetRepositoriesOfCurrentUserComponent notifyOnNetworkStatusChange={true}>
+    {({ loading, error, data, fetchMore }) => {
       if (error) {
         return <ErrorMessage error={error} />;
       }
-      if (loading || !data || !data.viewer) {
+      if (!data || (loading && (!data || !data.viewer))) {
         return <Loading />;
       }
 
-      return <RepositoryList repositories={data.viewer.repositories} />;
+      return (
+        <RepositoryList
+          loading={loading}
+          repositories={data.viewer.repositories as RepositoryConnection}
+          fetchMore={fetchMore}
+        />
+      );
     }}
-  </Query>
+  </GetRepositoriesOfCurrentUserComponent>
 );
 
 export default Profile;

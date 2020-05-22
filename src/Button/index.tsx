@@ -18,4 +18,14 @@ const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   </button>
 );
 
+const ButtonUnobstrusive: React.FC<React.ButtonHTMLAttributes<
+  HTMLButtonElement
+>> = ({ children, className, type = "button", ...props }) => (
+  <button className={`${className} Button_unobtrusive`} type={type} {...props}>
+    {children}
+  </button>
+);
+
+export { ButtonUnobstrusive };
+
 export default Button;

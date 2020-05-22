@@ -8588,6 +8588,10 @@ export type Organization = Node & Actor & RegistryPackageOwner & RegistryPackage
   /** The organization's public email. */
   email?: Maybe<Scalars['String']>;
   id: Scalars['ID'];
+  /** The setting value for whether the organization has an IP allow list enabled. */
+  ipAllowListEnabledSetting: IpAllowListEnabledSettingValue;
+  /** The IP addresses that are allowed to access resources owned by the organization. */
+  ipAllowListEntries: IpAllowListEntryConnection;
   /** Whether the organization has verified its profile email and website. */
   isVerified: Scalars['Boolean'];
   /** Showcases a selection of repositories and gists that the profile owner has either curated or that have been selected automatically based on popularity. */
@@ -8699,6 +8703,16 @@ export type OrganizationAuditLogArgs = {
 /** An account on GitHub, with one or more owners, that has repositories, members and teams. */
 export type OrganizationAvatarUrlArgs = {
   size?: Maybe<Scalars['Int']>;
+};
+
+
+/** An account on GitHub, with one or more owners, that has repositories, members and teams. */
+export type OrganizationIpAllowListEntriesArgs = {
+  after?: Maybe<Scalars['String']>;
+  before?: Maybe<Scalars['String']>;
+  first?: Maybe<Scalars['Int']>;
+  last?: Maybe<Scalars['Int']>;
+  orderBy?: Maybe<IpAllowListEntryOrder>;
 };
 
 
@@ -18161,7 +18175,9 @@ export type ViewerHovercardContext = HovercardContext & {
 };
 
 
-export type GetRepositoriesOfCurrentUserQueryVariables = {};
+export type GetRepositoriesOfCurrentUserQueryVariables = {
+  cursor?: Maybe<Scalars['String']>;
+};
 
 
 export type GetRepositoriesOfCurrentUserQuery = (
@@ -18176,7 +18192,10 @@ export type GetRepositoriesOfCurrentUserQuery = (
           { __typename?: 'Repository' }
           & RepositoryFragment
         )> }
-      )>>> }
+      )>>>, pageInfo: (
+        { __typename?: 'PageInfo' }
+        & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+      ) }
     ) }
   ) }
 );
@@ -18302,13 +18321,17 @@ export const RepositoryFragmentDoc = gql`
 }
     `;
 export const GetRepositoriesOfCurrentUserDocument = gql`
-    query getRepositoriesOfCurrentUser {
+    query getRepositoriesOfCurrentUser($cursor: String) {
   viewer {
-    repositories(first: 5, orderBy: {direction: DESC, field: STARGAZERS}) {
+    repositories(first: 5, orderBy: {direction: DESC, field: STARGAZERS}, after: $cursor) {
       edges {
         node {
           ...repository
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
       }
     }
   }
