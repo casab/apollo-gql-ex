@@ -14004,7 +14004,13 @@ export type RepositoryInvitation = Node & {
   invitee?: Maybe<User>;
   /** The user who created the invitation. */
   inviter: User;
-  /** The permission granted on this repository by this invitation. */
+  /**
+   * The permission granted on this repository by this invitation.
+   * 
+   * **Upcoming Change on 2020-10-01 UTC**
+   * **Description:** Type for `permission` will change from `RepositoryPermission!` to `String`.
+   * **Reason:** This field may return additional values
+   */
   permission: RepositoryPermission;
   /** The Repository the user is invited to. */
   repository?: Maybe<RepositoryInfo>;

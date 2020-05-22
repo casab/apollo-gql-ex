@@ -14,19 +14,14 @@ import {
   StarRepositoryComponent,
   UnstarRepositoryComponent,
   SubscriptionState,
+  RepositoryFragmentDoc,
 } from "../../generated/graphql";
 
-import { REPOSITORY_FRAGMENT } from "..";
 import { MutationUpdaterFn } from "apollo-client";
 import { DataProxy } from "apollo-cache";
 
-const VIEWER_SUBSCRIPTIONS = {
-  SUBSCRIBED: "SUBSCRIBED",
-  UNSUBSCRIBED: "UNSUBSCRIBED",
-};
-
 const isWatch = (viewerSubscription: SubscriptionState): boolean =>
-  viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED;
+  viewerSubscription === "SUBSCRIBED";
 
 const updateWatch: MutationUpdaterFn<WatchRepositoryMutation> = (
   client,
@@ -40,18 +35,17 @@ const updateWatch: MutationUpdaterFn<WatchRepositoryMutation> = (
 ) => {
   const repository = client.readFragment({
     id: `Repository:${id}`,
-    fragment: REPOSITORY_FRAGMENT,
+    fragment: RepositoryFragmentDoc,
   }) as Repository;
 
   let { totalCount } = repository.watchers;
+
   totalCount =
-    viewerSubscription === VIEWER_SUBSCRIPTIONS.SUBSCRIBED
-      ? totalCount + 1
-      : totalCount - 1;
+    viewerSubscription === "SUBSCRIBED" ? totalCount + 1 : totalCount - 1;
 
   client.writeFragment({
     id: `Repository:${id}`,
-    fragment: REPOSITORY_FRAGMENT,
+    fragment: RepositoryFragmentDoc,
     data: {
       ...repository,
       watchers: {
@@ -74,7 +68,7 @@ const updateAddStar: MutationUpdaterFn<StarRepositoryMutation> = (
 ) => {
   client.writeFragment({
     id: `Repository:${id}`,
-    fragment: REPOSITORY_FRAGMENT,
+    fragment: RepositoryFragmentDoc,
     data: getUpdatedStarData(client, id, viewerHasStarred),
   });
 };
@@ -91,7 +85,7 @@ const updateRemoveStar: MutationUpdaterFn<UnstarRepositoryMutation> = (
 ) => {
   client.writeFragment({
     id: `Repository:${id}`,
-    fragment: REPOSITORY_FRAGMENT,
+    fragment: RepositoryFragmentDoc,
     data: getUpdatedStarData(client, id, viewerHasStarred),
   });
 };
@@ -103,7 +97,7 @@ const getUpdatedStarData = (
 ) => {
   const repository = client.readFragment({
     id: `Repository:${id}`,
-    fragment: REPOSITORY_FRAGMENT,
+    fragment: RepositoryFragmentDoc,
   }) as Repository;
 
   let { totalCount } = repository.stargazers;
@@ -140,7 +134,21 @@ const RepositoryItem: React.FC<Repository> = ({
         <WatchRepositoryComponent
           variables={{
             id,
-            viewerSubscription,
+            viewerSubscription: (isWatch(viewerSubscription)
+              ? "UNSUBSCRIBED"
+              : "SUBSCRIBED") as SubscriptionState,
+          }}
+          optimisticResponse={{
+            updateSubscription: {
+              __typename: "UpdateSubscriptionPayload",
+              subscribable: {
+                __typename: "Repository",
+                id,
+                viewerSubscription: (isWatch(viewerSubscription)
+                  ? "UNSUBSCRIBED"
+                  : "SUBSCRIBED") as SubscriptionState,
+              },
+            },
           }}
           update={updateWatch}
         >
@@ -156,7 +164,20 @@ const RepositoryItem: React.FC<Repository> = ({
           )}
         </WatchRepositoryComponent>
         {!viewerHasStarred ? (
-          <StarRepositoryComponent variables={{ id }} update={updateAddStar}>
+          <StarRepositoryComponent
+            variables={{ id }}
+            optimisticResponse={{
+              addStar: {
+                __typename: "AddStarPayload",
+                starrable: {
+                  __typename: "Repository",
+                  id,
+                  viewerHasStarred: !viewerHasStarred,
+                },
+              },
+            }}
+            update={updateAddStar}
+          >
             {(addStar, { data, loading, error }) => (
               <Button
                 className={"RepositoryItem-title-action"}
@@ -169,6 +190,16 @@ const RepositoryItem: React.FC<Repository> = ({
         ) : (
           <UnstarRepositoryComponent
             variables={{ id }}
+            optimisticResponse={{
+              removeStar: {
+                __typename: "RemoveStarPayload",
+                starrable: {
+                  __typename: "Repository",
+                  id,
+                  viewerHasStarred: !viewerHasStarred,
+                },
+              },
+            }}
             update={updateRemoveStar}
           >
             {(removeStar, { data, loading, error }) => (
