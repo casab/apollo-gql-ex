@@ -13,6 +13,7 @@ type RepositoryListProps = {
   repositories: RepositoryConnection;
   fetchMore: Function;
   loading: boolean;
+  entry: "viewer" | "organization";
 };
 
 interface UpdateQueryFn<TData = any> {
@@ -24,7 +25,9 @@ interface UpdateQueryFn<TData = any> {
   ): TData;
 }
 
-const updateQuery: UpdateQueryFn<GetRepositoriesOfCurrentUserQuery> = (
+const getUpdateQuery = (
+  entry: "viewer" | "organization"
+): UpdateQueryFn<GetRepositoriesOfCurrentUserQuery> => (
   previousQueryResult,
   { fetchMoreResult }
 ) => {
@@ -34,14 +37,14 @@ const updateQuery: UpdateQueryFn<GetRepositoriesOfCurrentUserQuery> = (
 
   return {
     ...previousQueryResult,
-    viewer: {
-      ...previousQueryResult.viewer,
+    [entry]: {
+      ...previousQueryResult[entry],
       repositories: {
-        ...previousQueryResult.viewer.repositories,
-        ...fetchMoreResult.viewer.repositories,
+        ...previousQueryResult[entry].repositories,
+        ...fetchMoreResult[entry].repositories,
         edges: [
-          ...previousQueryResult.viewer.repositories.edges,
-          ...fetchMoreResult.viewer.repositories.edges,
+          ...previousQueryResult[entry].repositories.edges,
+          ...fetchMoreResult[entry].repositories.edges,
         ],
       },
     },
@@ -52,6 +55,7 @@ const RepositoryList: React.FC<RepositoryListProps> = ({
   repositories,
   fetchMore,
   loading,
+  entry,
 }) => {
   if (!repositories.edges) {
     return <p>No Repositories</p>;
@@ -69,7 +73,7 @@ const RepositoryList: React.FC<RepositoryListProps> = ({
         variables={{
           cursor: repositories.pageInfo.endCursor,
         }}
-        updateQuery={updateQuery}
+        updateQuery={getUpdateQuery(entry)}
         fetchMore={fetchMore}
       >
         Repositories

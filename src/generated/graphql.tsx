@@ -18175,6 +18175,32 @@ export type ViewerHovercardContext = HovercardContext & {
 };
 
 
+export type GetRepositoriesOfOrganizationQueryVariables = {
+  organizationName: Scalars['String'];
+  cursor?: Maybe<Scalars['String']>;
+};
+
+
+export type GetRepositoriesOfOrganizationQuery = (
+  { __typename?: 'Query' }
+  & { organization?: Maybe<(
+    { __typename?: 'Organization' }
+    & { repositories: (
+      { __typename?: 'RepositoryConnection' }
+      & { edges?: Maybe<Array<Maybe<(
+        { __typename?: 'RepositoryEdge' }
+        & { node?: Maybe<(
+          { __typename?: 'Repository' }
+          & RepositoryFragment
+        )> }
+      )>>>, pageInfo: (
+        { __typename?: 'PageInfo' }
+        & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+      ) }
+    ) }
+  )> }
+);
+
 export type GetRepositoriesOfCurrentUserQueryVariables = {
   cursor?: Maybe<Scalars['String']>;
 };
@@ -18320,6 +18346,43 @@ export const RepositoryFragmentDoc = gql`
   viewerSubscription
 }
     `;
+export const GetRepositoriesOfOrganizationDocument = gql`
+    query getRepositoriesOfOrganization($organizationName: String!, $cursor: String) {
+  organization(login: $organizationName) {
+    repositories(first: 5, after: $cursor) {
+      edges {
+        node {
+          ...repository
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}
+    ${RepositoryFragmentDoc}`;
+export type GetRepositoriesOfOrganizationComponentProps = Omit<ApolloReactComponents.QueryComponentOptions<GetRepositoriesOfOrganizationQuery, GetRepositoriesOfOrganizationQueryVariables>, 'query'> & ({ variables: GetRepositoriesOfOrganizationQueryVariables; skip?: boolean; } | { skip: boolean; });
+
+    export const GetRepositoriesOfOrganizationComponent = (props: GetRepositoriesOfOrganizationComponentProps) => (
+      <ApolloReactComponents.Query<GetRepositoriesOfOrganizationQuery, GetRepositoriesOfOrganizationQueryVariables> query={GetRepositoriesOfOrganizationDocument} {...props} />
+    );
+    
+export type GetRepositoriesOfOrganizationProps<TChildProps = {}, TDataName extends string = 'data'> = {
+      [key in TDataName]: ApolloReactHoc.DataValue<GetRepositoriesOfOrganizationQuery, GetRepositoriesOfOrganizationQueryVariables>
+    } & TChildProps;
+export function withGetRepositoriesOfOrganization<TProps, TChildProps = {}, TDataName extends string = 'data'>(operationOptions?: ApolloReactHoc.OperationOption<
+  TProps,
+  GetRepositoriesOfOrganizationQuery,
+  GetRepositoriesOfOrganizationQueryVariables,
+  GetRepositoriesOfOrganizationProps<TChildProps, TDataName>>) {
+    return ApolloReactHoc.withQuery<TProps, GetRepositoriesOfOrganizationQuery, GetRepositoriesOfOrganizationQueryVariables, GetRepositoriesOfOrganizationProps<TChildProps, TDataName>>(GetRepositoriesOfOrganizationDocument, {
+      alias: 'getRepositoriesOfOrganization',
+      ...operationOptions
+    });
+};
+export type GetRepositoriesOfOrganizationQueryResult = ApolloReactCommon.QueryResult<GetRepositoriesOfOrganizationQuery, GetRepositoriesOfOrganizationQueryVariables>;
 export const GetRepositoriesOfCurrentUserDocument = gql`
     query getRepositoriesOfCurrentUser($cursor: String) {
   viewer {

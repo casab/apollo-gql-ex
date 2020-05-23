@@ -1,0 +1,18 @@
+query getRepositoriesOfOrganization(
+  $organizationName: String!
+  $cursor: String
+) {
+  organization(login: $organizationName) {
+    repositories(first: 5, after: $cursor) {
+      edges {
+        node {
+          ...repository
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}
