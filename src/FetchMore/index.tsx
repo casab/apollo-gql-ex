@@ -4,7 +4,15 @@ import Loading from "../Loading";
 import { ButtonUnobstrusive } from "../Button";
 import "./style.css";
 import { OperationVariables } from "apollo-client";
-import { UpdateQueryFn } from "apollo-client/core/watchQueryOptions";
+
+interface UpdateQueryFn<TData = any> {
+  (
+    previousQueryResult: TData,
+    options: {
+      fetchMoreResult?: TData;
+    }
+  ): TData;
+}
 
 interface FetchMoreProps {
   loading: boolean;

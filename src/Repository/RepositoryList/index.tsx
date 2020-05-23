@@ -8,33 +8,40 @@ import {
 } from "../../generated/graphql";
 
 import "../style.css";
-import { UpdateQueryFn } from "apollo-client/core/watchQueryOptions";
 
 type RepositoryListProps = {
   repositories: RepositoryConnection;
-  fetchMore: any;
+  fetchMore: Function;
   loading: boolean;
 };
 
+interface UpdateQueryFn<TData = any> {
+  (
+    previousQueryResult: TData,
+    options: {
+      fetchMoreResult?: TData;
+    }
+  ): TData;
+}
+
 const updateQuery: UpdateQueryFn<GetRepositoriesOfCurrentUserQuery> = (
-  previousResult,
-  options
+  previousQueryResult,
+  { fetchMoreResult }
 ) => {
-  const { subscriptionData } = options;
-  if (!subscriptionData) {
-    return previousResult;
+  if (!fetchMoreResult) {
+    return previousQueryResult;
   }
 
   return {
-    ...previousResult,
+    ...previousQueryResult,
     viewer: {
-      ...previousResult.viewer,
+      ...previousQueryResult.viewer,
       repositories: {
-        ...previousResult.viewer.repositories,
-        ...subscriptionData.data.viewer.repositories,
+        ...previousQueryResult.viewer.repositories,
+        ...fetchMoreResult.viewer.repositories,
         edges: [
-          ...previousResult.viewer.repositories.edges,
-          ...subscriptionData.data.viewer.repositories.edges,
+          ...previousQueryResult.viewer.repositories.edges,
+          ...fetchMoreResult.viewer.repositories.edges,
         ],
       },
     },
