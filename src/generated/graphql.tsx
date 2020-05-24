@@ -18175,6 +18175,29 @@ export type ViewerHovercardContext = HovercardContext & {
 };
 
 
+export type GetIssuesOfRepositoryQueryVariables = {
+  repositoryOwner: Scalars['String'];
+  repositoryName: Scalars['String'];
+};
+
+
+export type GetIssuesOfRepositoryQuery = (
+  { __typename?: 'Query' }
+  & { repository?: Maybe<(
+    { __typename?: 'Repository' }
+    & { issues: (
+      { __typename?: 'IssueConnection' }
+      & { edges?: Maybe<Array<Maybe<(
+        { __typename?: 'IssueEdge' }
+        & { node?: Maybe<(
+          { __typename?: 'Issue' }
+          & Pick<Issue, 'id' | 'number' | 'state' | 'title' | 'url' | 'bodyHTML'>
+        )> }
+      )>>> }
+    ) }
+  )> }
+);
+
 export type GetRepositoriesOfOrganizationQueryVariables = {
   organizationName: Scalars['String'];
   cursor?: Maybe<Scalars['String']>;
@@ -18346,6 +18369,44 @@ export const RepositoryFragmentDoc = gql`
   viewerSubscription
 }
     `;
+export const GetIssuesOfRepositoryDocument = gql`
+    query getIssuesOfRepository($repositoryOwner: String!, $repositoryName: String!) {
+  repository(name: $repositoryName, owner: $repositoryOwner) {
+    issues(first: 5) {
+      edges {
+        node {
+          id
+          number
+          state
+          title
+          url
+          bodyHTML
+        }
+      }
+    }
+  }
+}
+    `;
+export type GetIssuesOfRepositoryComponentProps = Omit<ApolloReactComponents.QueryComponentOptions<GetIssuesOfRepositoryQuery, GetIssuesOfRepositoryQueryVariables>, 'query'> & ({ variables: GetIssuesOfRepositoryQueryVariables; skip?: boolean; } | { skip: boolean; });
+
+    export const GetIssuesOfRepositoryComponent = (props: GetIssuesOfRepositoryComponentProps) => (
+      <ApolloReactComponents.Query<GetIssuesOfRepositoryQuery, GetIssuesOfRepositoryQueryVariables> query={GetIssuesOfRepositoryDocument} {...props} />
+    );
+    
+export type GetIssuesOfRepositoryProps<TChildProps = {}, TDataName extends string = 'data'> = {
+      [key in TDataName]: ApolloReactHoc.DataValue<GetIssuesOfRepositoryQuery, GetIssuesOfRepositoryQueryVariables>
+    } & TChildProps;
+export function withGetIssuesOfRepository<TProps, TChildProps = {}, TDataName extends string = 'data'>(operationOptions?: ApolloReactHoc.OperationOption<
+  TProps,
+  GetIssuesOfRepositoryQuery,
+  GetIssuesOfRepositoryQueryVariables,
+  GetIssuesOfRepositoryProps<TChildProps, TDataName>>) {
+    return ApolloReactHoc.withQuery<TProps, GetIssuesOfRepositoryQuery, GetIssuesOfRepositoryQueryVariables, GetIssuesOfRepositoryProps<TChildProps, TDataName>>(GetIssuesOfRepositoryDocument, {
+      alias: 'getIssuesOfRepository',
+      ...operationOptions
+    });
+};
+export type GetIssuesOfRepositoryQueryResult = ApolloReactCommon.QueryResult<GetIssuesOfRepositoryQuery, GetIssuesOfRepositoryQueryVariables>;
 export const GetRepositoriesOfOrganizationDocument = gql`
     query getRepositoriesOfOrganization($organizationName: String!, $cursor: String) {
   organization(login: $organizationName) {

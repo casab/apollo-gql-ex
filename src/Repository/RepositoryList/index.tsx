@@ -1,10 +1,12 @@
 import React from "react";
 
 import RepositoryItem from "../RepositoryItem";
+import Issues from "../../Issue";
 import FetchMore from "../../FetchMore";
 import {
   RepositoryConnection,
   GetRepositoriesOfCurrentUserQuery,
+  GetRepositoriesOfOrganizationQuery,
 } from "../../generated/graphql";
 
 import "../style.css";
@@ -27,10 +29,9 @@ interface UpdateQueryFn<TData = any> {
 
 const getUpdateQuery = (
   entry: "viewer" | "organization"
-): UpdateQueryFn<GetRepositoriesOfCurrentUserQuery> => (
-  previousQueryResult,
-  { fetchMoreResult }
-) => {
+): UpdateQueryFn<
+  GetRepositoriesOfCurrentUserQuery | GetRepositoriesOfOrganizationQuery
+> => (previousQueryResult, { fetchMoreResult }) => {
   if (!fetchMoreResult) {
     return previousQueryResult;
   }
@@ -62,11 +63,18 @@ const RepositoryList: React.FC<RepositoryListProps> = ({
   }
   return (
     <React.Fragment>
-      {repositories.edges.map(({ node }) => (
-        <div key={node.id} className="RepositoryItem">
-          <RepositoryItem {...node} />
-        </div>
-      ))}
+      {repositories.edges.map((edge) =>
+        edge && edge.node ? (
+          <div key={edge.node.id} className="RepositoryItem">
+            <RepositoryItem {...edge.node} />
+
+            <Issues
+              repositoryName={edge.node.name}
+              repositoryOwner={edge.node.owner.login}
+            />
+          </div>
+        ) : null
+      )}
       <FetchMore
         loading={loading}
         hasNextPage={repositories.pageInfo.hasNextPage}

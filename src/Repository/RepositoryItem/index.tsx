@@ -7,9 +7,6 @@ import "../style.css";
 
 import {
   Repository,
-  UnstarRepositoryMutation,
-  WatchRepositoryMutation,
-  StarRepositoryMutation,
   WatchRepositoryComponent,
   StarRepositoryComponent,
   UnstarRepositoryComponent,
@@ -23,7 +20,7 @@ import { DataProxy } from "apollo-cache";
 const isWatch = (viewerSubscription: SubscriptionState): boolean =>
   viewerSubscription === "SUBSCRIBED";
 
-const updateWatch: MutationUpdaterFn<WatchRepositoryMutation> = (
+const updateWatch: MutationUpdaterFn<any> = (
   client,
   {
     data: {
@@ -56,7 +53,7 @@ const updateWatch: MutationUpdaterFn<WatchRepositoryMutation> = (
   });
 };
 
-const updateAddStar: MutationUpdaterFn<StarRepositoryMutation> = (
+const updateAddStar: MutationUpdaterFn<any> = (
   client,
   {
     data: {
@@ -73,7 +70,7 @@ const updateAddStar: MutationUpdaterFn<StarRepositoryMutation> = (
   });
 };
 
-const updateRemoveStar: MutationUpdaterFn<UnstarRepositoryMutation> = (
+const updateRemoveStar: MutationUpdaterFn<any> = (
   client,
   {
     data: {
