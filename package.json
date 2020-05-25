@@ -61,6 +61,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-router": "^5.1.7",
     "@types/react-router-dom": "^5.1.5",
+    "@types/recompose": "^0.30.7",
     "eslint-plugin-import": "^2.20.2",
     "typescript-eslint-parser": "^22.0.0"
   }

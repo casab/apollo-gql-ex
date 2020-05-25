@@ -7,6 +7,8 @@ import Organization from "../Organization";
 
 import * as routes from "../constants/routes";
 
+import "./style.css";
+
 type AppState = {
   organizationName: string;
 };

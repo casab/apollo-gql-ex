@@ -18178,6 +18178,8 @@ export type ViewerHovercardContext = HovercardContext & {
 export type GetIssuesOfRepositoryQueryVariables = {
   repositoryOwner: Scalars['String'];
   repositoryName: Scalars['String'];
+  issueState: IssueState;
+  cursor?: Maybe<Scalars['String']>;
 };
 
 
@@ -18193,7 +18195,10 @@ export type GetIssuesOfRepositoryQuery = (
           { __typename?: 'Issue' }
           & Pick<Issue, 'id' | 'number' | 'state' | 'title' | 'url' | 'bodyHTML'>
         )> }
-      )>>> }
+      )>>>, pageInfo: (
+        { __typename?: 'PageInfo' }
+        & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+      ) }
     ) }
   )> }
 );
@@ -18370,9 +18375,9 @@ export const RepositoryFragmentDoc = gql`
 }
     `;
 export const GetIssuesOfRepositoryDocument = gql`
-    query getIssuesOfRepository($repositoryOwner: String!, $repositoryName: String!) {
+    query getIssuesOfRepository($repositoryOwner: String!, $repositoryName: String!, $issueState: IssueState!, $cursor: String) {
   repository(name: $repositoryName, owner: $repositoryOwner) {
-    issues(first: 5) {
+    issues(first: 5, states: [$issueState], after: $cursor) {
       edges {
         node {
           id
@@ -18382,6 +18387,10 @@ export const GetIssuesOfRepositoryDocument = gql`
           url
           bodyHTML
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
       }
     }
   }
