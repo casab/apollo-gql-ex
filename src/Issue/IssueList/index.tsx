@@ -67,8 +67,6 @@ const updateQuery: UpdateQueryFn<GetIssuesOfRepositoryQuery> = (
   if (!fetchMoreResult) {
     return previousQueryResult;
   }
-  console.log(previousQueryResult);
-  console.log(fetchMoreResult);
 
   return {
     ...previousQueryResult,
@@ -209,7 +207,12 @@ const IssueList: React.FC<IssueListProps> = ({
     <div className="IssueList">
       {issues.edges.map((issue) =>
         issue && issue.node ? (
-          <IssueItem key={issue.node.id} issue={issue.node} />
+          <IssueItem
+            key={issue.node.id}
+            issue={issue.node}
+            repositoryName={repositoryName}
+            repositoryOwner={repositoryOwner}
+          />
         ) : null
       )}
       <FetchMore

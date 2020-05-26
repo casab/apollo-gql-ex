@@ -18175,6 +18175,54 @@ export type ViewerHovercardContext = HovercardContext & {
 };
 
 
+export type GetCommentsOfIssueQueryVariables = {
+  repositoryOwner: Scalars['String'];
+  repositoryName: Scalars['String'];
+  number: Scalars['Int'];
+  cursor?: Maybe<Scalars['String']>;
+};
+
+
+export type GetCommentsOfIssueQuery = (
+  { __typename?: 'Query' }
+  & { repository?: Maybe<(
+    { __typename?: 'Repository' }
+    & { issue?: Maybe<(
+      { __typename?: 'Issue' }
+      & Pick<Issue, 'id'>
+      & { comments: (
+        { __typename?: 'IssueCommentConnection' }
+        & { edges?: Maybe<Array<Maybe<(
+          { __typename?: 'IssueCommentEdge' }
+          & { node?: Maybe<(
+            { __typename?: 'IssueComment' }
+            & Pick<IssueComment, 'id' | 'bodyHTML'>
+            & { author?: Maybe<(
+              { __typename?: 'Bot' }
+              & Pick<Bot, 'login'>
+            ) | (
+              { __typename?: 'EnterpriseUserAccount' }
+              & Pick<EnterpriseUserAccount, 'login'>
+            ) | (
+              { __typename?: 'Mannequin' }
+              & Pick<Mannequin, 'login'>
+            ) | (
+              { __typename?: 'Organization' }
+              & Pick<Organization, 'login'>
+            ) | (
+              { __typename?: 'User' }
+              & Pick<User, 'login'>
+            )> }
+          )> }
+        )>>>, pageInfo: (
+          { __typename?: 'PageInfo' }
+          & Pick<PageInfo, 'endCursor' | 'hasNextPage'>
+        ) }
+      ) }
+    )> }
+  )> }
+);
+
 export type GetIssuesOfRepositoryQueryVariables = {
   repositoryOwner: Scalars['String'];
   repositoryName: Scalars['String'];
@@ -18374,6 +18422,50 @@ export const RepositoryFragmentDoc = gql`
   viewerSubscription
 }
     `;
+export const GetCommentsOfIssueDocument = gql`
+    query getCommentsOfIssue($repositoryOwner: String!, $repositoryName: String!, $number: Int!, $cursor: String) {
+  repository(name: $repositoryName, owner: $repositoryOwner) {
+    issue(number: $number) {
+      id
+      comments(first: 1, after: $cursor) {
+        edges {
+          node {
+            id
+            bodyHTML
+            author {
+              login
+            }
+          }
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
+    }
+  }
+}
+    `;
+export type GetCommentsOfIssueComponentProps = Omit<ApolloReactComponents.QueryComponentOptions<GetCommentsOfIssueQuery, GetCommentsOfIssueQueryVariables>, 'query'> & ({ variables: GetCommentsOfIssueQueryVariables; skip?: boolean; } | { skip: boolean; });
+
+    export const GetCommentsOfIssueComponent = (props: GetCommentsOfIssueComponentProps) => (
+      <ApolloReactComponents.Query<GetCommentsOfIssueQuery, GetCommentsOfIssueQueryVariables> query={GetCommentsOfIssueDocument} {...props} />
+    );
+    
+export type GetCommentsOfIssueProps<TChildProps = {}, TDataName extends string = 'data'> = {
+      [key in TDataName]: ApolloReactHoc.DataValue<GetCommentsOfIssueQuery, GetCommentsOfIssueQueryVariables>
+    } & TChildProps;
+export function withGetCommentsOfIssue<TProps, TChildProps = {}, TDataName extends string = 'data'>(operationOptions?: ApolloReactHoc.OperationOption<
+  TProps,
+  GetCommentsOfIssueQuery,
+  GetCommentsOfIssueQueryVariables,
+  GetCommentsOfIssueProps<TChildProps, TDataName>>) {
+    return ApolloReactHoc.withQuery<TProps, GetCommentsOfIssueQuery, GetCommentsOfIssueQueryVariables, GetCommentsOfIssueProps<TChildProps, TDataName>>(GetCommentsOfIssueDocument, {
+      alias: 'getCommentsOfIssue',
+      ...operationOptions
+    });
+};
+export type GetCommentsOfIssueQueryResult = ApolloReactCommon.QueryResult<GetCommentsOfIssueQuery, GetCommentsOfIssueQueryVariables>;
 export const GetIssuesOfRepositoryDocument = gql`
     query getIssuesOfRepository($repositoryOwner: String!, $repositoryName: String!, $issueState: IssueState!, $cursor: String) {
   repository(name: $repositoryName, owner: $repositoryOwner) {
