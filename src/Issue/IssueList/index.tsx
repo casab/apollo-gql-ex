@@ -7,6 +7,7 @@ import {
   IssueConnection,
   IssueState as IssueState2,
   GetIssuesOfRepositoryQuery,
+  GetIssuesOfRepositoryDocument,
 } from "../../generated/graphql";
 
 import "./style.css";
@@ -15,6 +16,8 @@ import Loading from "../../Loading";
 import IssueItem from "../IssueItem";
 import { ButtonUnobstrusive } from "../../Button";
 import FetchMore from "../../FetchMore";
+import { ApolloConsumer } from "react-apollo";
+import ApolloClient from "apollo-client";
 
 enum IssueState {
   NONE = "NONE",
@@ -23,6 +26,25 @@ enum IssueState {
 }
 
 type IssueStateType = IssueState | IssueState2;
+
+interface UpdateQueryFn<TData = any> {
+  (
+    previousQueryResult: TData,
+    options: {
+      fetchMoreResult?: TData;
+    }
+  ): TData;
+}
+
+interface IssuesProps extends GetIssuesOfRepositoryQueryVariables {
+  onChangeIssueState: (s: IssueState) => IssueState;
+}
+
+interface IssueListProps extends GetIssuesOfRepositoryQueryVariables {
+  issues: IssueConnection;
+  loading: boolean;
+  fetchMore: Function;
+}
 
 const TRANSITION_LABELS = {
   [IssueState.NONE]: "Show Open Issues",
@@ -37,15 +59,6 @@ const TRANSITION_STATE = {
 };
 
 const isShow = (issueState: IssueStateType) => issueState !== IssueState.NONE;
-
-interface UpdateQueryFn<TData = any> {
-  (
-    previousQueryResult: TData,
-    options: {
-      fetchMoreResult?: TData;
-    }
-  ): TData;
-}
 
 const updateQuery: UpdateQueryFn<GetIssuesOfRepositoryQuery> = (
   previousQueryResult,
@@ -73,9 +86,25 @@ const updateQuery: UpdateQueryFn<GetIssuesOfRepositoryQuery> = (
   };
 };
 
-interface IssuesProps extends GetIssuesOfRepositoryQueryVariables {
-  onChangeIssueState: (s: IssueState) => IssueState;
-}
+const prefetchIssues = (
+  client: ApolloClient<GetIssuesOfRepositoryQuery>,
+  repositoryOwner: string,
+  repositoryName: string,
+  issueState: IssueStateType
+) => {
+  const nextIssueState = TRANSITION_STATE[issueState];
+
+  if (isShow(nextIssueState)) {
+    client.query({
+      query: GetIssuesOfRepositoryDocument,
+      variables: {
+        repositoryOwner,
+        repositoryName,
+        issueState: nextIssueState,
+      },
+    });
+  }
+};
 
 const Issues: React.FC<IssuesProps> = ({
   repositoryOwner,
@@ -84,11 +113,12 @@ const Issues: React.FC<IssuesProps> = ({
   onChangeIssueState,
 }) => (
   <div className="Issues">
-    <ButtonUnobstrusive
-      onClick={() => onChangeIssueState(TRANSITION_STATE[issueState])}
-    >
-      {TRANSITION_LABELS[issueState]}
-    </ButtonUnobstrusive>
+    <IssueFilter
+      repositoryOwner={repositoryOwner}
+      repositoryName={repositoryName}
+      issueState={issueState}
+      onChangeIssueState={onChangeIssueState}
+    />
     {isShow(issueState) && (
       <GetIssuesOfRepositoryComponent
         variables={{ repositoryOwner, repositoryName, issueState }}
@@ -144,11 +174,25 @@ const Issues: React.FC<IssuesProps> = ({
   </div>
 );
 
-interface IssueListProps extends GetIssuesOfRepositoryQueryVariables {
-  issues: IssueConnection;
-  loading: boolean;
-  fetchMore: Function;
-}
+const IssueFilter: React.FC<IssuesProps> = ({
+  repositoryOwner,
+  repositoryName,
+  issueState,
+  onChangeIssueState,
+}) => (
+  <ApolloConsumer>
+    {(client) => (
+      <ButtonUnobstrusive
+        onClick={() => onChangeIssueState(TRANSITION_STATE[issueState])}
+        onMouseOver={() =>
+          prefetchIssues(client, repositoryOwner, repositoryName, issueState)
+        }
+      >
+        {TRANSITION_LABELS[issueState]}
+      </ButtonUnobstrusive>
+    )}
+  </ApolloConsumer>
+);
 
 const IssueList: React.FC<IssueListProps> = ({
   issues,
